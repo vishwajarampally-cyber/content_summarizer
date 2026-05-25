@@ -125,26 +125,64 @@ load_project_env()
 st.sidebar.image("https://img.icons8.com/gradient/100/document.png", width=60)
 st.sidebar.title("Configuration")
 
-# Let users check and supply API Keys in Streamlit UI directly (useful for deployments)
-env_grok_key = os.getenv("GROK_API_KEY", "").strip()
-env_mongo_url = os.getenv("MONGODB_URL", "").strip()
+# Capture initial environment configuration to preserve secure keys
+if "initial_grok_key" not in st.session_state:
+    st.session_state.initial_grok_key = os.getenv("GROK_API_KEY", "").strip()
+if "initial_mongo_url" not in st.session_state:
+    st.session_state.initial_mongo_url = os.getenv("MONGODB_URL", "").strip()
 
-st.sidebar.subheader("API Keys & Databases")
-user_grok_key = st.sidebar.text_input(
-    "Grok API Key", 
-    value=env_grok_key, 
-    type="password",
-    help="Enter your xAI Grok or Groq API Key. Format starts with 'gsk_' for Groq or standard for xAI."
-)
+has_env_grok = bool(st.session_state.initial_grok_key)
+has_env_mongo = bool(st.session_state.initial_mongo_url and "localhost" not in st.session_state.initial_mongo_url)
 
-user_mongo_url = st.sidebar.text_input(
-    "MongoDB Connection URL", 
-    value=env_mongo_url if env_mongo_url else "", 
-    type="password",
-    help="MongoDB Atlas connection string. If left blank, the app runs in-memory using mongomock!"
-)
+user_grok_key = ""
+user_mongo_url = ""
 
-# Apply configurations to environment
+st.sidebar.subheader("Security & Environment")
+
+# --- Grok Key UI (Secure & Encapsulated) ---
+if has_env_grok:
+    st.sidebar.info("🔒 **Grok API Key** is securely loaded from Cloud Secrets.")
+    override_grok = st.sidebar.checkbox("Override with custom Grok Key", key="override_grok")
+    if override_grok:
+        user_grok_key = st.sidebar.text_input(
+            "Enter custom Grok API Key",
+            type="password",
+            help="Enter a custom xAI/Groq key to override the system key."
+        )
+    else:
+        user_grok_key = st.session_state.initial_grok_key
+else:
+    user_grok_key = st.sidebar.text_input(
+        "Grok API Key",
+        value="",
+        type="password",
+        help="Enter your xAI Grok or Groq API Key. Format starts with 'gsk_' for Groq."
+    )
+
+# --- MongoDB URL UI (Secure & Encapsulated) ---
+if has_env_mongo:
+    st.sidebar.info("🔒 **MongoDB Database** is connected securely via Secrets.")
+    override_mongo = st.sidebar.checkbox("Override with custom MongoDB URL", key="override_mongo")
+    if override_mongo:
+        user_mongo_url = st.sidebar.text_input(
+            "Enter custom MongoDB URL",
+            type="password",
+            help="Enter a custom MongoDB Atlas connection string."
+        )
+    else:
+        user_mongo_url = st.session_state.initial_mongo_url
+else:
+    override_mongo_options = st.sidebar.checkbox("Provide custom MongoDB URL", key="override_mongo_options")
+    if override_mongo_options:
+        user_mongo_url = st.sidebar.text_input(
+            "MongoDB Connection URL",
+            type="password",
+            help="Enter your custom MongoDB connection string."
+        )
+    else:
+        user_mongo_url = ""
+
+# Apply selected configurations back to environment variables for backend consumption
 if user_grok_key:
     os.environ["GROK_API_KEY"] = user_grok_key
 else:
