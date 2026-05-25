@@ -84,9 +84,14 @@ class GrokService:
                     )
 
                 if response.status_code == 429:
-                    raise RuntimeError(
-                        f"Grok API rate limit exceeded. Response: {response.text.strip()}"
-                    )
+                    if attempt >= retries:
+                        raise RuntimeError(
+                            f"Grok API rate limit exceeded. Response: {response.text.strip()}"
+                        )
+                    # Exponential backoff for rate limits (e.g., 6 seconds, 12 seconds...)
+                    sleep_duration = attempt * 6
+                    time.sleep(sleep_duration)
+                    continue
 
                 if response.status_code == 400:
                     print(f"DEBUG - Request payload: {payload}")
