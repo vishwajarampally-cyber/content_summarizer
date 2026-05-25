@@ -121,6 +121,10 @@ st.markdown("""
 from utils.env_loader import load_project_env
 load_project_env()
 
+# Import utility functions for PDF and URL text extraction
+from utils.pdf_handler import extract_text_from_pdf
+from utils.url_extractor import extract_text_from_url
+
 # Sidebar - Configuration and API Settings
 st.sidebar.image("https://img.icons8.com/gradient/100/document.png", width=60)
 st.sidebar.title("Configuration")
