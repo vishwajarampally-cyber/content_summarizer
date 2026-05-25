@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SummAIry - Advanced Content Summarizer</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="background-glows">
+        <div class="glow glow-1"></div>
+        <div class="glow glow-2"></div>
+    </div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo">
+                <i class="fa-solid fa-wand-magic-sparkles logo-icon"></i>
+                <span class="logo-text">Summ<span class="logo-accent">AI</span>ry</span>
+            </div>
+            <p class="subtitle">Turn lengthy PDFs, articles, and documents into clear insights instantly</p>
+        </header>
+
+        <!-- Main Dashboard -->
+        <main class="dashboard-grid">
+            
+            <!-- Left Panel: Input & Config -->
+            <section class="card glass-card input-panel">
+                <div class="tab-header">
+                    <button class="tab-btn active" id="tab-text" onclick="switchTab('text')">
+                        <i class="fa-solid fa-align-left"></i> Paste Text
+                    </button>
+                    <button class="tab-btn" id="tab-url" onclick="switchTab('url')">
+                        <i class="fa-solid fa-link"></i> Article URL
+                    </button>
+                    <button class="tab-btn" id="tab-pdf" onclick="switchTab('pdf')">
+                        <i class="fa-regular fa-file-pdf"></i> PDF Upload
+                    </button>
+                </div>
+
+                <!-- Input Contexts -->
+                <div class="tab-content">
+                    
+                    <!-- Text Area Input -->
+                    <div class="tab-pane active" id="pane-text">
+                        <label for="input-textarea" class="field-label">Paste Content</label>
+                        <textarea id="input-textarea" placeholder="Paste your text document here (minimum 10 words)..." rows="10"></textarea>
+                    </div>
+
+                    <!-- URL Input -->
+                    <div class="tab-pane" id="pane-url">
+                        <label for="input-url" class="field-label">Article URL</label>
+                        <div class="input-with-icon">
+                            <i class="fa-solid fa-earth-americas input-icon"></i>
+                            <input type="url" id="input-url" placeholder="https://example.com/article-to-summarize">
+                        </div>
+                    </div>
+
+                    <!-- PDF Upload Input -->
+                    <div class="tab-pane" id="pane-pdf">
+                        <label class="field-label">Upload PDF</label>
+                        <div class="file-dropzone" id="dropzone" onclick="document.getElementById('input-file').click()">
+                            <i class="fa-solid fa-cloud-arrow-up dropzone-icon"></i>
+                            <p class="dropzone-text">Drag and drop your PDF here or <span>browse files</span></p>
+                            <p class="dropzone-sub">Supports only PDF documents up to 10MB</p>
+                            <input type="file" id="input-file" accept=".pdf" style="display: none;" onchange="handleFileSelect(event)">
+                        </div>
+                        <div id="file-info" class="file-info-badge" style="display: none;">
+                            <i class="fa-solid fa-file-pdf"></i>
+                            <span id="file-name-display">document.pdf</span>
+                            <button class="remove-file-btn" onclick="clearFile(event)"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Configuration Dropdowns -->
+                <div class="config-grid">
+                    <div class="form-group">
+                        <label for="select-content-type" class="field-label">Content Type</label>
+                        <div class="select-wrapper">
+                            <select id="select-content-type">
+                                <option value="General Content" selected>General Content</option>
+                                <option value="Technical Document">Technical Document</option>
+                                <option value="Academic Article">Academic Article</option>
+                                <option value="Business Report">Business Report</option>
+                                <option value="Beginner Explanation">Beginner Explanation</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="select-style" class="field-label">Summary Style</label>
+                        <div class="select-wrapper">
+                            <select id="select-style">
+                                <option value="Short Summary" selected>Short Summary</option>
+                                <option value="Detailed Summary">Detailed Summary</option>
+                                <option value="Bullet Point Summary">Bullet Point Summary</option>
+                                <option value="Key Insights">Key Insights</option>
+                                <option value="Beginner Friendly Explanation">Beginner Friendly Explanation</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button class="btn btn-primary btn-glow" id="btn-submit" onclick="generateSummary()">
+                    <i class="fa-solid fa-sparkles"></i> Summarize Content
+                </button>
+            </section>
+
+            <!-- Right Panel: Output Results -->
+            <section class="card glass-card output-panel">
+                <div class="output-header">
+                    <h2 class="section-title">Summary Output</h2>
+                    <div class="output-actions" id="output-actions" style="display: none;">
+                        <button class="action-btn" onclick="copyToClipboard()" title="Copy to Clipboard">
+                            <i class="fa-regular fa-copy"></i> Copy
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Output States -->
+                <div class="output-container">
+                    <!-- Default Empty State -->
+                    <div id="output-empty" class="state-view">
+                        <div class="empty-icon-pulse">
+                            <i class="fa-regular fa-file-lines"></i>
+                        </div>
+                        <h3>No Summary Yet</h3>
+                        <p>Configure options and click "Summarize Content" to generate a summary.</p>
+                    </div>
+
+                    <!-- Loader State -->
+                    <div id="output-loading" class="state-view" style="display: none;">
+                        <div class="custom-loader">
+                            <div class="spinner"></div>
+                            <div class="gem"></div>
+                        </div>
+                        <h3>Analyzing content...</h3>
+                        <p>This may take a moment depending on content length.</p>
+                    </div>
+
+                    <!-- Result Content -->
+                    <div id="output-result" class="result-text" style="display: none;">
+                        <!-- Markdown text injected dynamically -->
+                    </div>
+                </div>
+
+                <!-- Statistics Footer -->
+                <div class="stats-panel" id="stats-panel" style="display: none;">
+                    <div class="stat-card">
+                        <span class="stat-val" id="stat-words">0</span>
+                        <span class="stat-label">Words Analyzed</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-val" id="stat-chars">0</span>
+                        <span class="stat-label">Characters</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-val" id="stat-time">0m</span>
+                        <span class="stat-label">Est. Reading Time</span>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- History Section -->
+        <section class="history-section">
+            <div class="history-header">
+                <div class="history-title-group">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <h2 class="section-title">History Hub</h2>
+                </div>
+                <div class="history-filters">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="history-search" placeholder="Filter history..." oninput="renderHistory()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Grid -->
+            <div class="history-grid" id="history-grid">
+                <!-- Cards dynamically loaded -->
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal for Detailed History Record -->
+    <div class="modal-overlay" id="history-modal" onclick="closeHistoryModal()">
+        <div class="modal-card glass-card" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="modal-meta-header">
+                    <span class="badge" id="modal-badge-source">URL</span>
+                    <span class="badge badge-accent" id="modal-badge-style">Short Summary</span>
+                </div>
+                <button class="modal-close" onclick="closeHistoryModal()">&times;</button>
+            </div>
+            <h2 class="modal-title" id="modal-title">Record Title</h2>
+            <div class="modal-meta-sub" id="modal-date">Date</div>
+            
+            <div class="modal-body-container">
+                <div class="modal-summary-content" id="modal-content">
+                    <!-- Inserted summary text -->
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div class="modal-stats">
+                    <span><i class="fa-solid fa-heading"></i> <span id="modal-stat-words">0</span> words</span>
+                    <span><i class="fa-solid fa-hourglass-half"></i> <span id="modal-stat-time">0</span>m reading</span>
+                </div>
+                <button class="btn btn-secondary" onclick="copyModalToClipboard()">
+                    <i class="fa-regular fa-copy"></i> Copy Summary
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script file -->
+    <script src="/static/app.js"></script>
+</body>
+</html>
